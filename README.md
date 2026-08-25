@@ -46,24 +46,6 @@ python -m venv .venv \&\& source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Getting the data
-
-You need a (free) Kaggle account and API token.
-
-1. On kaggle.com: **Account → Create New API Token** → downloads `kaggle.json`
-2. `mkdir -p \~/.kaggle \&\& mv kaggle.json \~/.kaggle/ \&\& chmod 600 \~/.kaggle/kaggle.json`
-3. `pip install kaggle` (already in requirements.txt)
-4. `bash scripts/download\_data.sh`
-
-This downloads `LSWMD.pkl` (\~3.5 GB unpacked) into `data/raw/`.
-
-Alternative: `pip install kagglehub` and
-
-```python
-import kagglehub
-path = kagglehub.dataset\_download("qingyi/wm811k-wafer-map")
-```
-
 ## Usage
 
 ```bash
