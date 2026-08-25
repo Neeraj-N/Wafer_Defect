@@ -1,0 +1,8 @@
+# Pinned, explicit rule set so CI lint is deterministic across ruff releases
+# (ruff's *default* rules can change between versions and silently turn a
+# green badge red). Explicit select overrides that.
+line-length = 100
+target-version = "py310"
+
+[lint]
+select = ["E4", "E7", "E9", "F", "I"]  # pyflakes + import errors/sorting

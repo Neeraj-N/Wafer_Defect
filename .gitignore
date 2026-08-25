@@ -1,0 +1,27 @@
+# data
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+*.pkl
+*.mat
+
+# checkpoints
+checkpoints/*
+!checkpoints/.gitkeep
+*.pt
+*.pth
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# jupyter
+.ipynb_checkpoints/
+
+# os
+.DS_Store
