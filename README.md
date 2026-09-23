@@ -2,6 +2,7 @@
 
 https://waferdefect-ia2alfcoxwu4wjvuxcqkl4.streamlit.app/
 
+
 ## Project Details
 
 Automated **9-class silicon-wafer defect classification with Grad-CAM spatial
@@ -17,10 +18,11 @@ labelled wafers have no defect.**
 | **Task** | 9-class wafer-map failure-pattern classification |
 | **Data** | WM-811K / LSWMD (Kaggle), 172,950 labelled maps |
 | **Classes** | `none`, `Center`, `Donut`, `Edge-Loc`, `Edge-Ring`, `Loc`, `Random`, `Scratch`, `Near-full` |
-| **Model** | 2-channel CNN (die-exists / die-failed masks), macro-F1-selected |
+| **Model** | 2-channel CNN, macro-F1-selected |
 | **Explainability** | Grad-CAM heatmaps over the wafer map |
 | **Baselines** | Random Forest on handcrafted features; small CNN on the raw map |
 | **Key challenge** | severe imbalance (`none` ≈ 85%, `Near-full` < 0.1%) |
+
 
 ## Results
 
@@ -44,30 +46,6 @@ Per class:
 | Scratch | 0.18 | 0.57 | 0.27 | 162 |
 | Near-full | 0.72 | 0.96 | 0.82 | 24 |
 
-## Methodology notes
-
-* **Split by lot, not randomly.** Wafers from the same `lotName` share a process
-  run; a random split leaks lot-specific signal into the test set and inflates
-  apparent accuracy. This project splits by lot (`GroupShuffleSplit` on
-  `lotName`).
-* **Nearest-neighbor resize.** Maps vary in shape (die count varies by product);
-  all are resized to 64×64 with **nearest-neighbor** interpolation to preserve
-  the discrete `{background, pass, fail}` semantics — bilinear/bicubic would blur
-  categories into meaningless in-between values.
-* **Two-channel categorical encoding.** Each map is fed as two binary channels
-  (*die exists*, *die failed*) rather than one ordinal `{0, .5, 1}` channel, so
-  the network is never told a passing die sits "halfway between" background and a
-  failed die — they are categories, not a scale.
-* **Imbalance handling.** `none` ≈ 85%; the rarest class (`Near-full`) is < 0.1%.
-  Both baselines use class-weighted loss (focal loss is also available), and
-  **checkpoint selection and reporting use macro-F1**, not raw accuracy, which
-  swings 15+ points epoch-to-epoch on this data while saying nothing about the
-  minority patterns.
-* **Nested label fields.** `LSWMD.pkl` stores `failureType` / `trainTestLabel`
-  as 1-element nested arrays (a MATLAB-struct leftover); `data_loader.py` unwraps
-  them and drops unlabelled wafers for supervised training.
-* **Training stability.** Adam with `ReduceLROnPlateau` (halve LR on val-macro-F1
-  plateau) and early stopping on val macro-F1, fixed seed for reproducibility.
 
 ## Dataset citation
 
