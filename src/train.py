@@ -25,6 +25,7 @@ from tqdm import tqdm
 from . import config
 from .data_loader import load_labeled
 from .dataset import WaferMapDataset
+from .losses import FocalLoss
 from .model import WaferCNN
 from .preprocessing import lot_group_split, resize_all
 
@@ -36,6 +37,14 @@ def parse_args():
     p.add_argument("--img-size", type=int, default=config.IMG_SIZE)
     p.add_argument("--lr", type=float, default=config.LR)
     p.add_argument("--patience", type=int, default=config.EARLY_STOP_PATIENCE)
+    p.add_argument(
+        "--loss",
+        choices=["ce", "focal"],
+        default="ce",
+        help="ce = class-weighted cross-entropy (default); focal = weighted focal loss "
+        "(extra down-weighting of easy examples for the rare defect classes).",
+    )
+    p.add_argument("--focal-gamma", type=float, default=2.0, help="Focusing parameter for --loss focal.")
     p.add_argument("--pkl-path", default=str(config.RAW_PKL))
     p.add_argument("--checkpoint-dir", default=str(config.CHECKPOINT_DIR))
     return p.parse_args()
@@ -107,7 +116,13 @@ def main():
     train_loader, val_loader, class_weights = build_loaders(args)
 
     model = WaferCNN(num_classes=len(config.FAILURE_CLASSES), in_size=args.img_size).to(device)
-    criterion = nn.CrossEntropyLoss(weight=class_weights.to(device))
+    weights = class_weights.to(device)
+    if args.loss == "focal":
+        criterion = FocalLoss(weight=weights, gamma=args.focal_gamma)
+        print(f"Loss: weighted focal (gamma={args.focal_gamma})")
+    else:
+        criterion = nn.CrossEntropyLoss(weight=weights)
+        print("Loss: class-weighted cross-entropy")
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     # Halve the LR when val macro-F1 plateaus; this tames the epoch-to-epoch
     # thrash you otherwise see with a fixed LR on this imbalanced data.

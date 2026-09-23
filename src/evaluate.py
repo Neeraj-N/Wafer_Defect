@@ -8,17 +8,19 @@ Usage:
 import argparse
 
 import torch
-from sklearn.metrics import (
-    balanced_accuracy_score,
-    classification_report,
-    confusion_matrix,
-    f1_score,
-)
+from sklearn.metrics import classification_report, confusion_matrix
 from torch.utils.data import DataLoader
 
 from . import config
 from .data_loader import load_labeled
 from .dataset import WaferMapDataset
+from .metrics import (
+    benchmark_latency,
+    classification_metrics,
+    cost_weighted_error,
+    to_markdown,
+    write_report,
+)
 from .model import WaferCNN
 from .preprocessing import lot_group_split, resize_all
 from .visualize import plot_confusion_matrix
@@ -31,6 +33,13 @@ def parse_args():
     p.add_argument("--img-size", type=int, default=config.IMG_SIZE)
     p.add_argument("--batch-size", type=int, default=config.BATCH_SIZE)
     p.add_argument("--out", default=None, help="Optional path to save the confusion matrix plot")
+    p.add_argument("--report-json", default=None, help="Optional path to write metrics as JSON")
+    p.add_argument("--markdown", default=None, help="Optional path to write a Markdown metrics table")
+    p.add_argument(
+        "--benchmark-latency",
+        action="store_true",
+        help="Measure single-wafer inference latency and batched throughput on this machine.",
+    )
     return p.parse_args()
 
 
@@ -59,9 +68,35 @@ def main():
             preds.extend(out.argmax(1).cpu().tolist())
             targets.extend(y.tolist())
 
-    print(f"Macro-F1: {f1_score(targets, preds, average='macro'):.4f}")
-    print(f"Balanced accuracy: {balanced_accuracy_score(targets, preds):.4f}")
+    metrics = classification_metrics(targets, preds)
+    cost = cost_weighted_error(targets, preds)
+    latency = None
+    if args.benchmark_latency:
+        latency = benchmark_latency(
+            model, input_shape=(2, args.img_size, args.img_size), device=str(device)
+        )
+
+    print(f"Macro-F1: {metrics['macro_f1']:.4f}")
+    print(f"Balanced accuracy: {metrics['balanced_accuracy']:.4f}")
+    print(f"Raw accuracy: {metrics['accuracy']:.4f}")
+    print(f"Cost-weighted error (illustrative matrix): {cost:.4f}")
+    if latency is not None:
+        print(
+            f"Latency: {latency['latency_ms_per_wafer']:.2f} ms/wafer "
+            f"({latency['device']}, batch 1); "
+            f"throughput {latency['throughput_wafers_per_s']:.0f} wafers/s "
+            f"(batch {latency['batch_size']})"
+        )
+    print()
     print(classification_report(targets, preds, target_names=config.FAILURE_CLASSES))
+
+    if args.report_json or args.markdown:
+        write_report(
+            metrics, json_path=args.report_json, md_path=args.markdown, latency=latency, cost=cost
+        )
+        if args.markdown:
+            print(f"\nWrote Markdown metrics table to {args.markdown}:\n")
+            print(to_markdown(metrics, latency=latency, cost=cost))
 
     cm = confusion_matrix(targets, preds)
     plot_confusion_matrix(cm, config.FAILURE_CLASSES, save_path=args.out)
