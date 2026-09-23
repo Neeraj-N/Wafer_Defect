@@ -69,15 +69,6 @@ Per class:
 * **Training stability.** Adam with `ReduceLROnPlateau` (halve LR on val-macro-F1
   plateau) and early stopping on val macro-F1, fixed seed for reproducibility.
 
-## Roadmap
-
-* Push `Scratch` precision up (focal loss sweep, targeted augmentation, a
-  Scratch-vs-Loc/Edge-Loc sub-head).
-* A deeper backbone (e.g. a 2-channel ResNet) as a drop-in alternative to the
-  small CNN, compared honestly against it.
-* Calibrated confidence + an abstain/"route to human" threshold for low-confidence
-  wafers, the fab-realistic way to use a classifier that isn't perfect on the tail.
-
 ## Dataset citation
 
 M.-J. Wu, J.-S. R. Jang, and J.-L. Chen, "Wafer Map Failure Pattern Recognition
