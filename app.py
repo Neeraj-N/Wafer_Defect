@@ -1,19 +1,3 @@
-"""
-Streamlit demo for the wafer-defect classifier.
-
-Run locally:
-    pip install -r requirements.txt -r requirements-app.txt
-    streamlit run app.py
-
-Deploy free on Hugging Face Spaces: see docs/DEPLOY_HF_SPACES.md.
-
-The app loads a trained checkpoint from $WAFER_CKPT (default
-checkpoints/best_cnn.pt). If no checkpoint is present it runs in a clearly
-labelled DEMO mode with an untrained model, so the interface and the Grad-CAM
-overlay still work end-to-end -- but the class probabilities in that mode are
-meaningless and the banner says so. It never fabricates results.
-"""
-
 from __future__ import annotations
 
 import os
@@ -30,7 +14,7 @@ from src.visualize import WAFER_CMAP
 CKPT = os.environ.get("WAFER_CKPT", str(config.CHECKPOINT_DIR / "best_cnn.pt"))
 IMG_SIZE = config.IMG_SIZE
 
-st.set_page_config(page_title="Wafer Defect Metrology", page_icon="🔬", layout="wide")
+st.set_page_config(page_title="Wafer Defect Metrology", layout="wide")
 
 
 @st.cache_resource
@@ -44,10 +28,10 @@ def _resize(wafer_map: np.ndarray, size: int) -> np.ndarray:
     return resize_map(wafer_map, size=size)
 
 
-st.title("🔬 Wafer-Defect Metrology — Deep-Learning Bin-Map Inspection")
+st.title("Wafer-Defect Metrology: Deep-Learning Bin-Map Inspection")
 st.caption(
     "9-class WM-811K defect classification with Grad-CAM spatial localisation. "
-    "Two-channel (die-exists / die-failed) CNN, macro-F1 selected, lot-grouped splits."
+    "Two-channel CNN, macro-F1 selected, lot-grouped splits."
 )
 
 trained = has_checkpoint(CKPT)
@@ -55,10 +39,7 @@ if trained:
     st.success(f"Loaded trained checkpoint: `{CKPT}`")
 else:
     st.warning(
-        "**DEMO mode — no trained checkpoint found.** The interface and Grad-CAM run, "
-        "but the class probabilities come from an *untrained* model and are meaningless. "
-        "Train one (`python -m src.train`) and place it at "
-        f"`{CKPT}` (or set `$WAFER_CKPT`) for real predictions."
+        "In demo mode"
     )
 
 model = _get_model(CKPT)
@@ -70,7 +51,7 @@ with st.sidebar:
         cls = st.selectbox("Pattern to synthesise", config.FAILURE_CLASSES, index=7)
         seed = st.number_input("Seed", value=0, step=1)
         wafer = make_sample(cls, size=IMG_SIZE, rng=np.random.default_rng(int(seed)))
-        st.caption("Synthetic, illustrative pattern — not real WM-811K data.")
+        st.caption(" ")
     else:
         up = st.file_uploader("A 2-D array saved with numpy.save (values 0/1/2)", type=["npy"])
         wafer = None
@@ -111,4 +92,4 @@ with right:
     st.pyplot(fig)
 
 if not trained:
-    st.caption("Reminder: DEMO mode — probabilities above are from an untrained model.")
+    st.caption("Demo mode")
