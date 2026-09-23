@@ -1,3 +1,9 @@
+## Live demo
+
+https://waferdefect-ia2alfcoxwu4wjvuxcqkl4.streamlit.app/
+
+## Project Details
+
 Automated **9-class silicon-wafer defect classification with Grad-CAM spatial
 localisation**, trained on the real-fab [WM-811K / LSWMD](https://www.kaggle.com/datasets/qingyi/wm811k-wafer-map)
 dataset (811,457 wafer maps; 172,950 expert-labelled). Built to handle the
@@ -5,11 +11,6 @@ extreme class imbalance that makes raw accuracy meaningless in a fab: **~85% of
 labelled wafers have no defect.**
 
 ![Defect taxonomy](docs/images/defect_taxonomy.png)
-
-
-## Live demo
-
-https://waferdefect-ia2alfcoxwu4wjvuxcqkl4.streamlit.app/
 
 | | |
 |-|-|
