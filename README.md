@@ -55,8 +55,3 @@ Semiconductor Manufacturing*, 2015. Dataset on
 [Kaggle](https://www.kaggle.com/datasets/qingyi/wm811k-wafer-map) and
 [MIR Lab](http://mirlab.org/dataset/public/).
 
-## License
-
-MIT (this code). The dataset has its own Kaggle license — check the dataset page
-before redistributing it.
-
