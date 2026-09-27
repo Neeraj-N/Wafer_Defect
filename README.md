@@ -28,7 +28,7 @@ labelled wafers have no defect.**
 
 | Metric | Score |
 |-|-|
-| Macro-F1 | **0.77** |
+| Macro-F1 | **0.83** |
 | Balanced accuracy | 0.85 |
 | Raw accuracy | 0.95 |
 
